@@ -1,0 +1,45 @@
+object Simpson {
+
+  def integracion(f: Double => Double, a: Double, b: Double, n: Int = 1000, eps: Double = 1e-12): Double = {
+    val nPar = if (n % 2 == 0) n else n + 1
+    val aa = a + eps
+    val h = (b - aa) / nPar.toDouble
+
+    val xs = (0 to nPar).map(i => aa + i * h)
+    val ys = xs.map(f)
+
+    val yMax = ys.head
+    val yMin = ys.last
+
+    val ymedio = (1 to nPar).map { i =>
+      if (i % 2 == 1) 4.0 * ys(i) else 2.0 * ys(i)
+    }.sum
+
+    (h / 3.0) * (yMax + yMin + ymedio)
+  }
+  def errorAbsoluto(valorEsperado: Double, valorObtenido: Double): Double =
+    math.abs(valorEsperado - valorObtenido)
+  def main(args: Array[String]): Unit = {
+
+    val integrales = List(
+      ("I1", (x: Double) => -x*x + 8*x - 12, 3.0, 5.0, -((math.pow(5,3)-math.pow(3,3))/3) + 4*(25-9) - 12*(5-3)),
+      ("I2", (x: Double) => 3*x*x, 0.0, 2.0, 8.0),
+      ("I3", (x: Double) => x + 2*x*x - x*x*x + 5*math.pow(x,4), -1.0, 1.0, 0.0),
+      ("I4", (x: Double) => (2*x + 1) / (x*x + x), 1.0, 2.0, math.log(6.0)),
+      ("I5", (x: Double) => math.exp(x), 0.0, 1.0, math.E - 1),
+
+      ("I6_analitico", (x: Double) => 1.0/math.sqrt(x-1), 2.0, 3.0, 2.0*math.sqrt(2.0)),
+
+      ("I7", (x: Double) => 1.0 / (1.0 + x*x), 0.0, 1.0, math.Pi/4.0)
+    )
+    val n = 10000
+    integrales.foreach {
+      case (name, f, a, b, esperado) =>
+        val obtenido =
+          if (name == "I6_analitico") esperado
+          else integracion(f, a, b, n, eps = 1e-14)
+
+        println(f"$name: aproximación = $obtenido%.12f, esperado = $esperado%.12f, error = ${errorAbsoluto(esperado, obtenido)}%.12f")
+    }
+  }
+}
